@@ -4,21 +4,23 @@ $(function() {
 	$('body').prepend($overlay);
 
 	var role;
-	$button1 = $('<div style="padding: 10px; margin: 10px; border: 2px solid white; background: black; color: white; font-size: 20px;">1</div>').click(function() {
+	$button1 = $('<div style="padding: 10px; margin: 10px; border: 2px solid white; background: black; color: white; font-size: 20px;">alfonso</div>').click(function() {
 		role = 0;
 		run();
 	});
-	$button2 = $('<div style="padding: 10px; margin: 10px; border: 2px solid white; background: black; color: white; font-size: 20px;">2</div>').click(function() {
+	$button2 = $('<div style="padding: 10px; margin: 10px; border: 2px solid white; background: black; color: white; font-size: 20px;">beatrix</div>').click(function() {
 		role = 1;
 		run();
 	});
+	$button3 = $('<div style="padding: 10px; margin: 10px; border: 2px solid white; background: black; color: white; font-size: 20px;">observer</div>').click(function() {
+		run();
+	});
 	
-	$overlay.append($button1).append($button2);
+	$overlay.append($button1).append($button2).append($button3);
 
 	function run() {
 	
-		$button1.remove();
-		$button2.remove();
+		$overlay.empty();
 
 		var socket = io.connect("http://37.139.6.243:8000");
 		socket.on('connect', function () {
@@ -30,10 +32,10 @@ $(function() {
 		{
 			h: 0,
 			targetH: 0,
-			s: 1,
-			targetS: 0.5,
-			l: 1,
-			targetL: 0.5,
+			s: 0,
+			targetS: 0,
+			l: 0,
+			targetL: 0,
 			ibi: 0,
 			beatValue: 0,
 			beatTime: 0,
@@ -42,24 +44,31 @@ $(function() {
 		{
 			h: 0,
 			targetH: 0,
-			s: 1,
+			s: 0,
 			targetS: 0,
-			l: 1,
+			l: 0,
 			targetL: 0,
 			ibi: 0,
 			beatValue: 0,
 			beatTime: 0,
 			beat: false
 		}];
-
+		var emoR = [0,-1];
+		var emoG = [-Math.cos(Math.PI/3), -Math.sin(Math.PI/3)];
+		var emoB = [Math.cos(Math.PI/3), -Math.sin(Math.PI/3)];
+//		console.log('emo', emoR, emoG, emoB);
+		
 		socket.on('alfonso', function(data) {
 			console.log('alfonso', data);
 			if (data.ibi) {
 				hearts[0].ibi = data.ibi / 1000;
 			}
 			if (data.angry) {
-				hearts[0].targetH = 0;
-				hearts[0].targetS = 1.0 - (data.angry - data.sad - data.happy - data.surprised) / 4;
+				var x = emoR[0]*data.angry + emoG[0] * data.happy + emoB[0] * data.sad;
+				var y = emoR[1]*data.angry + emoG[1] * data.happy + emoB[1] * data.sad;
+				hearts[0].targetH = Math.atan2(y,x)/(2*Math.PI);
+				hearts[0].targetS = Math.sqrt(x*x+y*y);
+				//hearts[0].targetS = 1.0 - (data.angry - data.sad - data.happy - data.surprised) / 4;
 				hearts[0].targetL = 0.5;
 			}
 		});
@@ -70,9 +79,18 @@ $(function() {
 				hearts[1].ibi = data.ibi / 1000;
 			}
 			if (data.angry) {
-				hearts[1].targetH = 0;
-				hearts[1].targetS = 1.0 - (data.angry - data.sad - data.happy - data.surprised) / 4;
-				hearts[1].targetL = 0.5;
+//				hearts[1].targetH = 0;
+//				hearts[1].targetS = 1.0 - (data.angry - data.sad - data.happy - data.surprised) / 4;
+//				hearts[1].targetL = 0.5;
+				var x = emoR[0]*data.angry + emoG[0] * data.happy + emoB[0] * data.sad;
+				var y = emoR[1]*data.angry + emoG[1] * data.happy + emoB[1] * data.sad;
+				var angle = (Math.atan2(y,x)/(2*Math.PI)+1.25)%1;
+				hearts[0].targetH = angle;
+				hearts[0].targetS = Math.sqrt(x*x+y*y);
+				//hearts[0].targetS = 1.0 - (data.angry - data.sad - data.happy - data.surprised) / 4;
+				hearts[0].targetL = 0.5;
+				console.log('emo', 'coord', x, y, angle);
+				//console.log('emo', 'data', data.angry, data.happy, data.sad);
 			}
 		});
 		
@@ -211,10 +229,11 @@ $(function() {
 				}
 				
 				if (heart.ibi) {
-					heart.mesh.rotation.y = - Math.PI / 3;
-					heart.mesh.rotation.x = Math.sin(0.5 - heart.beatValue) * Math.PI / 8 * (i == 0 ? -1 : 1);							
+					heart.mesh.rotation.x = Math.sin(0.5 - heart.beatValue) * Math.PI / 8;							
 				} else {
+					heart.mesh.rotation.x = Math.sin(0.5) * Math.PI / 8;
 				}
+				heart.mesh.rotation.y = - Math.PI / 6;
 				heart.mesh.rotation.z = heart.mesh.rotation.z + time;
 				
 				heart.mesh.position.set(100 * (i==0 ? -1 : 1), 0, 0);
@@ -237,9 +256,15 @@ $(function() {
 			}
 
 			renderer.clear(true, true, true);
-			renderer.render(hearts[0].scene, hearts[0].camera);
-			renderer.clear(false, true, false);
-			renderer.render(hearts[1].scene, hearts[1].camera);
+			if (role==0) {
+				renderer.render(hearts[1].scene, hearts[1].camera);
+			} else if (role==1) {
+				renderer.render(hearts[0].scene, hearts[0].camera);
+			} else {
+				renderer.render(hearts[0].scene, hearts[0].camera);
+				renderer.clear(false, true, false);
+				renderer.render(hearts[1].scene, hearts[1].camera);
+			}
 
 			requestAnimationFrame(animate);
 		}

@@ -20,7 +20,7 @@ $(function() {
 		$button1.remove();
 		$button2.remove();
 
-		var socket = io.connect("http://192.168.0.147:8000");
+		var socket = io.connect("http://37.139.6.243:8000");
 		socket.on('connect', function () {
 			socket.emit('subscribe', 'alfonso');
 			socket.emit('subscribe', 'beatrix');
@@ -28,24 +28,24 @@ $(function() {
 
 		var hearts = [
 		{
-			r: 1,
-			targetR: 1,
-			g: 1,
-			targetG: 0,
-			b: 1,
-			targetB: 0,
+			h: 0,
+			targetH: 0,
+			s: 1,
+			targetS: 0.5,
+			l: 1,
+			targetL: 0.5,
 			ibi: 0,
 			beatValue: 0,
 			beatTime: 0,
 			beat: false
 		}, 
 		{
-			r: 1,
-			targetR: 1,
-			g: 1,
-			targetG: 0,
-			b: 1,
-			targetB: 0,
+			h: 0,
+			targetH: 0,
+			s: 1,
+			targetS: 0,
+			l: 1,
+			targetL: 0,
 			ibi: 0,
 			beatValue: 0,
 			beatTime: 0,
@@ -53,33 +53,27 @@ $(function() {
 		}];
 
 		socket.on('alfonso', function(data) {
-			console.log('alfonso',  data);
+			console.log('alfonso', data);
 			if (data.ibi) {
 				hearts[0].ibi = data.ibi / 1000;
 			}
-			hearts[0].targetR = Math.random();
-			hearts[0].targetG = Math.random();
-			hearts[0].targetB = Math.random();
-			
-			
-			if (data.ibi) {
-				hearts[1].ibi = 0.5 + Math.random();
+			if (data.angry) {
+				hearts[0].targetH = 0;
+				hearts[0].targetS = 1.0 - (data.angry - data.sad - data.happy - data.surprised) / 4;
+				hearts[0].targetL = 0.5;
 			}
-			hearts[1].targetR = Math.random();
-			hearts[1].targetG = Math.random();
-			hearts[1].targetB = Math.random();
-			
-			
 		});
 
 		socket.on('beatrix', function(data) {
-			console.log('beatrix',  data);
+			console.log('beatrix', data);
 			if (data.ibi) {
 				hearts[1].ibi = data.ibi / 1000;
 			}
-			hearts[1].targetR = Math.random();
-			hearts[1].targetG = Math.random();
-			hearts[1].targetB = Math.random();
+			if (data.angry) {
+				hearts[1].targetH = 0;
+				hearts[1].targetS = 1.0 - (data.angry - data.sad - data.happy - data.surprised) / 4;
+				hearts[1].targetL = 0.5;
+			}
 		});
 		
 		var camera, light, renderer;
@@ -112,12 +106,14 @@ $(function() {
 		function init() {
 
 			function sceneSetup(index) {
-				hearts[index].camera = new THREE.PerspectiveCamera(75, 1, 1, 10000);
+				hearts[index].camera = new THREE.PerspectiveCamera(75, 1, 1, 10000);				
 				hearts[index].camera.position.z = 400;
 				hearts[index].light = new THREE.PointLight(0xffffff, 0.8);
 				hearts[index].camera.add(hearts[index].light);
 				hearts[index].scene = new THREE.Scene();
 				hearts[index].scene.add(hearts[index].camera);
+				var ambientLight = new THREE.AmbientLight(0x666666);
+				hearts[index].scene.add(ambientLight);
 			}
 			
 			sceneSetup(0);
@@ -188,13 +184,13 @@ $(function() {
 		var last;
 		var totalTime = 0;
 		function animate() {
+		
 			var now = (new Date()).getTime() / 1000;
 			var time = 0;
 			if (last) {
 				time = now - last;
 			}
 			last = now;
-			
 			totalTime += time;
 			
 			for (var i=0 ; i<hearts.length ; i++) {
@@ -213,23 +209,30 @@ $(function() {
 				} else {
 					heart.beatValue = Math.max(0, heart.beatValue - time / heart.ibi) || 0;
 				}
-				heart.mesh.rotation.z = Math.PI + Math.sin(0.5 - heart.beatValue) * Math.PI / 2 * (i == 0 ? -1 : 1);
-				heart.mesh.rotation.y = - Math.PI / 6;
-				heart.mesh.rotation.x = Math.sin(0.5 - heart.beatValue) * Math.PI / 8 * (i == 0 ? -1 : 1);							
+				
+				if (heart.ibi) {
+					heart.mesh.rotation.y = - Math.PI / 3;
+					heart.mesh.rotation.x = Math.sin(0.5 - heart.beatValue) * Math.PI / 8 * (i == 0 ? -1 : 1);							
+				} else {
+				}
+				heart.mesh.rotation.z = heart.mesh.rotation.z + time;
 				
 				heart.mesh.position.set(100 * (i==0 ? -1 : 1), 0, 0);
-				var scale = 0.5 + heart.beatValue * 0.5;
-				scale = scale * (role == i ? 1 : 2);
+				var scale = 0.8 + heart.beatValue * 0.2;
+				scale = scale * (role == i ? 2 : 2);
 				heart.mesh.scale.set(scale, scale, scale);
-				heart.material.opacity = 0.8 + heart.beatValue * 0.2;	
-				heart.light.position.set(Math.cos(totalTime) * 100, Math.sin(totalTime) * 100, -100);				
+				heart.material.opacity = heart.ibi ? 0.8 + heart.beatValue * 0.2 : 0.2;
+				heart.light.position.set(Math.cos(totalTime) * 100, Math.sin(totalTime) * 100, -100);
 				
-				heart.r = heart.r + (heart.targetR - heart.r) * time;
-				heart.g = heart.g + (heart.targetG - heart.g) * time;
-				heart.b = heart.b + (heart.targetB - heart.b) * time;
+				heart.h = heart.h + (heart.targetH - heart.h) * time;
+				heart.s = heart.s + (heart.targetS - heart.s) * time;
+				heart.l = heart.l + (heart.targetL - heart.l) * time;
+				
+				var c = new THREE.Color();
+				c.setHSL(heart.h, heart.s, heart.l);
 				
 				heart.material.setValues({
-					color: new THREE.Color(heart.r, heart.g, heart.b)
+					color: c
 				});
 			}
 
