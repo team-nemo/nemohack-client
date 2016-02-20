@@ -20,7 +20,7 @@ $(function() {
 		$button1.remove();
 		$button2.remove();
 
-		var socket = io.connect("http://192.168.0.147:8000");
+		var socket = io.connect("http://37.139.6.243:8000");
 		socket.on('connect', function () {
 			socket.emit('subscribe', 'alfonso');
 			socket.emit('subscribe', 'beatrix');
