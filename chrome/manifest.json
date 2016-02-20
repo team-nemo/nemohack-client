@@ -11,7 +11,7 @@
 	},
 	"default_locale": "en",
 	"background": {
-		"page": "chrome/background.html",
+		"page": "background.html",
 		"persistent": true
 	},
 	"content_scripts": [{
@@ -28,7 +28,7 @@
 	"browser_action": {
 		"default_icon": "icons/icon19.png",
 		"default_title": "browser action demo",
-		"default_popup": "chrome/browser_action.html"
+		"default_popup": "browser_action.html"
 	},
 	"permissions": [
 		"tabs",

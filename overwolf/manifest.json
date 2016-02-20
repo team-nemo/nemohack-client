@@ -1,0 +1,28 @@
+{
+	"manifest_version": 1,
+	"type": "WebApp",
+	"meta": {
+		"name": "Demo App",
+		"version": "1.0.0",
+		"minimum-overwolf-version": "0.77.10",
+		"author": "Developer Name",
+		"icon": "iconMouseOver.png",
+		"icon_gray": "iconMouseNormal.png",
+		"description": "Demo App"
+	},
+	"data": {
+		"start_window": "MainWindow",
+		"windows": {
+			"MainWindow": {
+					"file": "Files/index.html",
+					"transparent": true,
+					"resizable": true,
+					"left": 0,
+					"top": 0,
+					"size": {"width": 0, "height": 0},
+					"min_size": {"width": 0, "height": 0},
+					"max_size": {"width": 5000, "height": 5000}
+				}
+		}
+	}
+}
