@@ -22,6 +22,8 @@
 			"js/socket.io-1.4.5.js",
 			"js/jquery-2.2.0.min.js",
 			"js/three.min.js",
+			"js/Projector.js",
+			"js/SoftwareRenderer.js",
 			"js/overlay.js"
 		]
 	}],  
