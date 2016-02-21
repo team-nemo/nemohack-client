@@ -1,7 +1,7 @@
 $(function() {
 
-	$overlay = $("<div style='position: fixed; right: 0px; top: 0px;'></div>");
-	$('body').prepend($overlay);
+	$overlay = $("<div style='position: fixed; right: 0px; top: 0px; z-index: 9999;'></div>");
+	$('body').append($overlay);
 
 	var role;
 	$button1 = $('<div style="padding: 10px; margin: 10px; border: 2px solid white; background: black; color: white; font-size: 20px;">alfonso</div>').click(function() {
@@ -64,12 +64,18 @@ $(function() {
 				hearts[0].ibi = data.ibi / 1000;
 			}
 			if (data.angry) {
+//				hearts[1].targetH = 0;
+//				hearts[1].targetS = 1.0 - (data.angry - data.sad - data.happy - data.surprised) / 4;
+//				hearts[1].targetL = 0.5;
 				var x = emoR[0]*data.angry + emoG[0] * data.happy + emoB[0] * data.sad;
 				var y = emoR[1]*data.angry + emoG[1] * data.happy + emoB[1] * data.sad;
-				hearts[0].targetH = Math.atan2(y,x)/(2*Math.PI);
+				var angle = (Math.atan2(y,x)/(2*Math.PI)+1.25)%1;
+				hearts[0].targetH = angle;
 				hearts[0].targetS = Math.sqrt(x*x+y*y);
 				//hearts[0].targetS = 1.0 - (data.angry - data.sad - data.happy - data.surprised) / 4;
 				hearts[0].targetL = 0.5;
+				//console.log('emo', 'coord', x, y, angle);
+				//console.log('emo', 'data', data.angry, data.happy, data.sad);
 			}
 		});
 
@@ -85,11 +91,11 @@ $(function() {
 				var x = emoR[0]*data.angry + emoG[0] * data.happy + emoB[0] * data.sad;
 				var y = emoR[1]*data.angry + emoG[1] * data.happy + emoB[1] * data.sad;
 				var angle = (Math.atan2(y,x)/(2*Math.PI)+1.25)%1;
-				hearts[0].targetH = angle;
-				hearts[0].targetS = Math.sqrt(x*x+y*y);
+				hearts[1].targetH = angle;
+				hearts[1].targetS = Math.sqrt(x*x+y*y);
 				//hearts[0].targetS = 1.0 - (data.angry - data.sad - data.happy - data.surprised) / 4;
-				hearts[0].targetL = 0.5;
-				console.log('emo', 'coord', x, y, angle);
+				hearts[1].targetL = 0.5;
+				//console.log('emo', 'coord', x, y, angle);
 				//console.log('emo', 'data', data.angry, data.happy, data.sad);
 			}
 		});
@@ -188,11 +194,11 @@ $(function() {
 			hearts[1].mesh = new THREE.Mesh(geometry, hearts[1].material);
 			hearts[1].scene.add(hearts[1].mesh);
 			
-			renderer = new THREE.WebGLRenderer({
+//			renderer = new THREE.WebGLRenderer({
+			renderer = new THREE.SoftwareRenderer({
 				alpha: true
 			});
-			renderer.setClearColor(0x000000, 0);
-			renderer.setClearColor(0x000000, 0);
+			renderer.setClearColor(0xffffff, 0);
 			renderer.autoClear = false;
 
 			$overlay.get(0).appendChild(renderer.domElement);
@@ -236,9 +242,9 @@ $(function() {
 				heart.mesh.rotation.y = - Math.PI / 6;
 				heart.mesh.rotation.z = heart.mesh.rotation.z + time;
 				
-				heart.mesh.position.set(100 * (i==0 ? -1 : 1), 0, 0);
+				heart.mesh.position.set(role == 2 ? 100 * (i==0 ? -1 : 1) : 100, 0, 0);
 				var scale = 0.8 + heart.beatValue * 0.2;
-				scale = scale * (role == i ? 2 : 2);
+				scale = scale * 2;
 				heart.mesh.scale.set(scale, scale, scale);
 				heart.material.opacity = heart.ibi ? 0.8 + heart.beatValue * 0.2 : 0.2;
 				heart.light.position.set(Math.cos(totalTime) * 100, Math.sin(totalTime) * 100, -100);
