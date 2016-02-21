@@ -13,6 +13,7 @@ $(function() {
 		run();
 	});
 	$button3 = $('<div style="padding: 10px; margin: 10px; border: 2px solid white; background: black; color: white; font-size: 20px;">observer</div>').click(function() {
+		role = 2;
 		run();
 	});
 	
@@ -54,8 +55,8 @@ $(function() {
 			beat: false
 		}];
 		var emoR = [0,-1];
-		var emoG = [-Math.cos(Math.PI/3), -Math.sin(Math.PI/3)];
-		var emoB = [Math.cos(Math.PI/3), -Math.sin(Math.PI/3)];
+		var emoG = [-Math.cos(2*Math.PI/3), -Math.sin(2*Math.PI/3)];
+		var emoB = [Math.cos(2*Math.PI/3), -Math.sin(2*Math.PI/3)];
 //		console.log('emo', emoR, emoG, emoB);
 		
 		socket.on('alfonso', function(data) {
@@ -242,7 +243,7 @@ $(function() {
 				heart.mesh.rotation.y = - Math.PI / 6;
 				heart.mesh.rotation.z = heart.mesh.rotation.z + time;
 				
-				heart.mesh.position.set(role == 2 ? 100 * (i==0 ? -1 : 1) : 100, 0, 0);
+				heart.mesh.position.set((role===2 ? (100 * (i==0 ? -1 : 1)) : 100), 0, 0);
 				var scale = 0.8 + heart.beatValue * 0.2;
 				scale = scale * 2;
 				heart.mesh.scale.set(scale, scale, scale);
@@ -262,13 +263,13 @@ $(function() {
 			}
 
 			renderer.clear(true, true, true);
-			if (role==0) {
+			if (role===0) {
 				renderer.render(hearts[1].scene, hearts[1].camera);
-			} else if (role==1) {
+			} else if (role===1) {
 				renderer.render(hearts[0].scene, hearts[0].camera);
 			} else {
 				renderer.render(hearts[0].scene, hearts[0].camera);
-				renderer.clear(false, true, false);
+//				renderer.clear(false, true, false);
 				renderer.render(hearts[1].scene, hearts[1].camera);
 			}
 
